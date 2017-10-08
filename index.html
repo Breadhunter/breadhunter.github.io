@@ -1,0 +1,295 @@
+<html>
+<head>
+	<title>KMP</title>
+	<meta name="description" content="Алгоритм поиска подстроки Кнута-Морриса-Пратта">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script language="javascript" type="text/javascript">
+
+var currentStep = 0;
+var rgValue = 10;
+var TIME_DELTA = 4;
+var stepTime = rgValue*TIME_DELTA;
+var patternLength = 0;
+var textinLength = 0;
+var prefix = [];
+var initb = false;
+var isPaused = true;
+var intID;
+var move = false;
+var currentPos = 0;
+var currentPat = 0;
+var currentText = 0;
+var isFind = false;
+
+function clear(){
+	isFind = false;
+	currentStep = 0;
+	currentPos = 0;
+	currentPat = 0;
+	currentText = 0;
+	prefix = [];
+	move = false;
+	var pren = document.getElementById("prefixN");
+	var pres = document.getElementById("prefixS");
+	var pref = document.getElementById("prefixF");
+	var presa = document.getElementById("prefAnim");
+	var textitl = document.getElementById("textInTab");
+	for(var i = 0; i < patternLength; i++){
+		pren.deleteCell(1);
+		pres.deleteCell(1);
+		pref.deleteCell(1);
+		presa.deleteCell(0);
+	}
+	for(var i = 0; i < textinLength; i++){
+		textitl.deleteCell(0);
+	}
+	patternLength = 0;
+	textinLength = 0;
+	document.getElementById("prefAnimTab").style.marginLeft = 5;
+	textSelAnim();
+	patternSelAnim();
+}
+
+function fprefix(str){
+	var n = str.length;
+	for (var i=0; i<n; i++) prefix.push(0);
+	for (var i=1; i<n; i++) {
+		var j = prefix[i-1];
+		while (j > 0 && str[i] != str[j])
+			j = prefix[j-1];
+		if (str[i] == str[j])  j++;
+		prefix[i] = j;
+	}
+}
+
+function init(){
+	var pattern = document.getElementById("patternIn").value;
+	var textin = document.getElementById("textIn").value;
+	if(pattern.length > 0 && textin.length > 0){
+		if(pattern.length > textin.length){
+			alert("Текст не может быть короче искомой подстроки");
+		return;
+		}
+		initb = true;
+		clear();
+		patternLength = pattern.length;
+		textinLength = textin.length;
+		var pren = document.getElementById("prefixN");
+		var pres = document.getElementById("prefixS");
+		var pref = document.getElementById("prefixF");
+		var presa = document.getElementById("prefAnim");
+		textit = document.getElementById("textInTab");
+		pattern = document.getElementById("patternIn").value;
+		fprefix(pattern);
+		patternLength = pattern.length;
+		for(var i = 0; i < patternLength; i++){
+			var celln = pren.insertCell();
+			var cells = pres.insertCell();
+			var cellf = pref.insertCell();
+			var cellsa = presa.insertCell();
+			var spref = "pref";
+			var pat = "pat";
+			cellf.id = spref.concat(i.toString());
+			cellsa.id = pat.concat(i.toString());
+			celln.innerHTML = i;
+			cells.innerHTML = pattern.charAt(i);
+			cellsa.innerHTML = pattern.charAt(i);
+			cellf.innerHTML = prefix[i];
+		}
+		for(var i = 0; i < textinLength; i++){
+			var tabid = "tabid";
+			var cellt = textit.insertCell();
+			cellt.innerHTML = textin.charAt(i);
+			cellt.id = tabid.concat(i.toString());
+		}
+		isPaused = true;
+		clearInterval(intID);
+		intID = setInterval(anim, stepTime);
+	}
+	else
+	{
+		alert("Введите данные!");
+	}
+	textSelAnim();
+	patternSelAnim();
+}
+function patternSelAnim(){
+	if(!isFind){
+	for(var i = 0; i < patternLength; i++){
+		var pat = "pat";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		if(i < currentPat){ccell.style.borderColor = "00FF00"; ccell.style.backgroundColor = "FFFFFF"; continue;}
+		if(i == currentPat){ccell.style.borderColor = "000000"; ccell.style.backgroundColor = "FF0000"; continue;}
+		ccell.style.borderColor = "000000";
+		ccell.style.backgroundColor = "FFFFFF";
+	}
+	for(var i = 0; i < patternLength; i++){
+		var pat = "pref";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		ccell.style.backgroundColor = "FFFFFF";
+	}
+	}else{
+	for(var i = 0; i < patternLength; i++){
+		var pat = "pat";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		ccell.style.borderColor = "000000";
+		ccell.style.backgroundColor = "FFFFFF";
+		}
+	for(var i = 0; i < patternLength; i++){
+		var pat = "pref";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		ccell.style.backgroundColor = "FFFFFF";
+	}
+	}
+	
+}
+function textSelAnim(){
+	if(!isFind){
+	for(var i = 0; i < textinLength; i++){
+		var pat = "tabid";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		if(i < currentText){ ccell.style.borderColor = "CCCCCC"; ccell.style.backgroundColor = "FFFFFF"; continue;}
+		if(i < currentText + currentPat){ccell.style.borderColor = "00FF00"; ccell.style.backgroundColor = "FFFFFF"; continue;}
+		if(i == currentText + currentPat){ccell.style.borderColor = "000000"; ccell.style.backgroundColor = "FF0000"; continue;}
+		ccell.style.borderColor = "000000";
+		ccell.style.backgroundColor = "FFFFFF";
+	}
+	}else{
+		for(var i = 0; i < textinLength; i++){
+		var pat = "tabid";
+		var ccell = document.getElementById(pat.concat(i.toString()));
+		if(i < currentText){ ccell.style.borderColor = "CCCCCC"; ccell.style.backgroundColor = "FFFFFF"; continue;}
+		if(i < currentText + currentPat){ccell.style.borderColor = "0000FF"; ccell.style.backgroundColor = "00FF00"; continue;}
+		if(i == currentText + currentPat){ccell.style.borderColor = "0000FF"; ccell.style.backgroundColor = "00FF00"; continue;}
+		ccell.style.borderColor = "000000";
+		ccell.style.backgroundColor = "FFFFFF";
+	}
+	}
+}
+function anim(){
+	if(!isFind)
+	if(!isPaused){
+		if(!initb){
+			alert("Введите данные! (2)");
+			pausef();
+			clear();
+			return;
+		}
+		currentStep++;
+		if(currentStep >= 20){
+			currentStep = 0;
+			if(currentPos >= currentText){move = false;}
+			if(move){
+				currentPos++;		
+			}else{
+				textSelAnim();
+				patternSelAnim();
+				var tablp = "tabid";
+				var patp = "pat";
+				var reltext = currentText + currentPat;	
+				var tabl = document.getElementById(tablp.concat(reltext.toString())).innerHTML;
+				var pat = document.getElementById(patp.concat(currentPat.toString())).innerHTML;
+				document.getElementById("status").innerHTML = "Сравниваем элементы (выделены красным)";
+				if (pat == tabl) {
+					currentPat++; 
+					document.getElementById("status").innerHTML = "Элементы совпали";
+					if(currentPat >= patternLength){
+						isFind = true;
+						var str = "Совпадение найдено на ";
+						document.getElementById("status").innerHTML = str.concat(currentText.toString());
+						textSelAnim();
+						patternSelAnim();						
+					}
+					textSelAnim();
+					patternSelAnim();
+				}else{
+					document.getElementById("status").innerHTML = "Элементы не совпали!";
+					if (currentPat > 0){
+						document.getElementById("status").innerHTML = "Сверяемся с префикс функцией и совершаем сдвиг";
+						var curpat = currentPat - 1;
+						var prefp = "pref";
+						currentText = currentText + prefix[curpat];
+						currentPat = prefix[curpat];
+						if(currentPat == 0)currentText++;
+						textSelAnim();
+						patternSelAnim();
+						var pref = document.getElementById(prefp.concat(curpat.toString()));
+						pref.style.backgroundColor = "FF0000";
+					}
+					else{
+						document.getElementById("status").innerHTML = "Совершаем сдвиг";
+						currentText++;
+						currentPat = 0;
+						textSelAnim();
+						patternSelAnim();
+					}
+					if(currentText > textinLength - patternLength){
+						isFind = true;
+						document.getElementById("status").innerHTML = "Совпадения в тексте не найдены";
+					}
+					move = true;
+				}
+			}
+			
+		}
+		if (move && currentPos < currentText){document.getElementById("prefAnimTab").style.marginLeft = 6 + currentStep*2 + 39 * currentPos;}
+	}
+}
+
+function pausef(){
+	isPaused = !isPaused;
+	if(isPaused){
+		document.getElementById("pause").value = "Старт";
+	}
+	else
+	{
+		document.getElementById("pause").value = "Пауза";
+	}
+}
+
+function changeSpeed(value){ 													
+	rgValue = value;
+	stepTime = rgValue*TIME_DELTA;
+	document.getElementById("speed").value = 30 - value;
+	clearInterval(intID);
+	intID = setInterval(anim, stepTime);	
+}
+</script>
+<div class="content">
+	<div class="control">
+		<form>	
+			<input type="button"  id="set" title="Ввод" onclick="init()" value="Ввод">
+			<input type="button"  id="pause" title="Старт/Пауза" onclick="pausef()" value="Старт">	
+			<input type="text" id="speed" title="Скорость анимации" readonly class="readonly" size="2" value="20">
+			<input type="range" id="speedRange" title="Скорость анимации" min="5" max="25" step="1" value="10" oninput="changeSpeed(this.value)">
+			Текст:
+			<input type="text" id="textIn" placeholder="aababcabcdabcdeabcdef" value="ababcababcababcababa" title="Текст" size="45" maxlength="45">
+			Паттерн:
+			<input type="text" id="patternIn" placeholder="abcdef" value="ababa" title="Паттерн" size="15" maxlength="15">
+		</form>
+	</div>
+	<div class="anim">
+		<div class="prefix">
+		<p>Префикс функция:</p>
+		<table title="Префикс функция" id="preftab">
+			<tr id = "prefixN">
+				<th>j</th>
+			</tr> 
+			<tr id = "prefixS">
+				<th>P[j]</th>
+			</tr> 
+			<tr id = "prefixF">
+				<th>f[j]</th>
+			</tr> 
+		</table>
+		<p id="status">.</p>
+		</div>
+		<div class="stranim">
+			<table title="Введенный текст"><tr id = "textInTab"></tr> </table>
+			<table title="Префикс функция" id="prefAnimTab"><tr id = "prefAnim"></tr> </table>
+		</div>
+	</div>
+</body>
+</html>
